@@ -1,0 +1,161 @@
+# basic configs
+scale: 4
+manual_seed: 0
+verbose: true
+
+
+# dataset configs
+dataset:
+  degradation:
+    type: BD
+    sigma: 1.5
+
+  train:
+    name: VimeoTecoGAN
+    seq_dir: data/VimeoTecoGAN/GT.lmdb
+    filter_file: ~
+    data_type: rgb
+    crop_size: 128
+    batch_size_per_gpu: 2
+    num_worker_per_gpu: 3
+    pin_memory: true
+
+  test:
+    name: Vid4
+    gt_seq_dir: data/Vid4/GT
+    lr_seq_dir: data/Vid4/Gaussian4xLR
+    filter_file: ~
+    num_worker_per_gpu: 3
+    pin_memory: true
+
+
+# model configs
+model:
+  #momo edit
+  #name: TecoGAN
+  name: RBPGAN
+
+  generator:
+    name: RBPN
+    num_channels: 3
+    base_filter: 256
+    feat: 64
+    num_stages: 3
+    n_resblock: 5
+    load_path: ~
+
+  discriminator:
+    name: STNet  # spatio-temporal network
+    in_nc: 3
+    tempo_range: 3
+    load_path: ~
+
+
+# training configs
+train:
+  tempo_extent: 4
+
+  start_iter: 0
+  total_iter: 800000
+
+  # configs for generator
+  generator:
+    lr: !!float 5e-5
+    lr_schedule:
+      type: FixedLR
+    betas: [0.9, 0.999]
+
+  # configs for discriminator
+  discriminator:
+    update_policy: adaptive
+    update_threshold: 0.4
+    crop_border_ratio: 0.75
+    lr: !!float 5e-5
+    lr_schedule:
+      type: FixedLR
+    betas: [0.9, 0.999]
+
+  # other configs
+  moving_first_frame: true
+  moving_factor: 0.7
+
+  # criterions
+
+  # according to paper, mse
+  # pixel_crit:
+  #   type: CB
+  #   weight: 1
+  #   reduction: mean
+
+  ### added 
+  L1_crit:
+    type: L1
+    weight: 1
+    reduction: mean
+
+
+  warping_crit:
+    type: CB
+    weight: 1
+    reduction: mean
+
+  ################################## what is feature crit : perceptual loss
+  #from paper
+  # In the VSR
+  # task, we can encourage the generator to produce features similar to
+  # the ground truth ones by increasing the cosine similarity of their
+  # feature maps.
+  feature_crit:
+    type: CosineSimilarity
+    weight: 0.2
+    reduction: mean
+    feature_layers: [8, 17, 26, 35]
+
+  # pingpong_crit:
+  #   type: CB
+  #   weight: 0.5
+  #   reduction: mean
+
+  gan_crit:
+    type: GAN
+    weight: 0.01
+    reduction: mean
+
+
+# validation configs
+test:
+  test_freq: 10000
+
+  # whether to save the generated SR results
+  save_res: false
+  res_dir: ~   # use default dir
+
+  # whether to save the test results in a json file
+  save_json: true
+  json_dir: ~  # use default dir
+
+  padding_mode: reflect
+  num_pad_front: 5
+
+
+# metric configs
+metric:
+  PSNR:
+    colorspace: y
+
+  LPIPS:
+    model: net-lin
+    net: alex
+    colorspace: rgb
+    spatial: false
+    version: 0.1
+
+  tOF:
+    colorspace: y
+
+
+# logger configs
+logger:
+  log_freq: 100
+  decay: 0.99
+  ckpt_freq: 20000

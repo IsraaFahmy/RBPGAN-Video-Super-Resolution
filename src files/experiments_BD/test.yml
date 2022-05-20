@@ -1,0 +1,96 @@
+# basic configs
+scale: 4
+manual_seed: 0
+verbose: false
+
+
+# dataset configs
+dataset:
+  degradation:
+    type: BD
+    sigma: 1.5
+
+  # test1:
+  #   name: test_double
+  #   gt_seq_dir: data/test_double/GT
+  #   lr_seq_dir: data/test_double/Gaussian4xLR
+  #   num_worker_per_gpu: 3
+  #   pin_memory: true
+
+  # test1:
+  #   name: Classics
+  #   gt_seq_dir: data/Classics/GT
+  #   lr_seq_dir: data/Classics/Gaussian4xLR
+  #   num_worker_per_gpu: 3
+  #   pin_memory: true
+
+  test1:
+    name: Vid4
+    gt_seq_dir: data/Vid4/GT
+    lr_seq_dir: data/Vid4/Gaussian4xLR
+    num_worker_per_gpu: 3
+    pin_memory: true
+
+
+  test2:
+    name: ToS3
+    gt_seq_dir: data/ToS3/GT
+    lr_seq_dir: data/ToS3/Gaussian4xLR
+    num_worker_per_gpu: 3
+    pin_memory: true
+
+
+# model configs
+model:
+  name: RBPGAN
+
+  generator:
+    name: RBPN
+    num_channels: 3
+    base_filter: 256
+    feat: 64
+    num_stages: 3
+    n_resblock: 5
+    nFrames: 4
+    load_path: experiments_BD/RBPN/RBPN_VimeoTecoGAN_4xSR_1GPU/train/ckpt/G_iter800000.pth
+
+  # name: TecoGAN
+
+  # generator:
+  #   name: FRNet  # frame-recurrent network
+  #   in_nc: 3
+  #   out_nc: 3
+  #   nf: 64
+  #   nb: 10
+  #   load_path: /home/g04f/TecoGAN/pretrained_models/TecoGAN_BD_iter500000.pth
+
+# test configs
+test:
+  # whether to save the SR results
+  save_res: true
+  res_dir: results2
+  
+  # whether to save the test results in a json file
+  save_json: false
+  json_dir: ~  # use default dir
+
+  # temporal padding
+  padding_mode: reflect
+  num_pad_front: 5
+  
+metric:
+  PSNR:
+    colorspace: y
+
+  LPIPS:
+    model: net-lin
+    net: alex
+    colorspace: rgb
+    spatial: false
+    version: 0.1
+
+  tOF:
+    colorspace: y
+  
+  SSIM:
+    colorspace: rgb
